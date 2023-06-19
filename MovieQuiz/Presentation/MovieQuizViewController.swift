@@ -42,21 +42,18 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             message = resultMessage
         }
 
-        let model = AlertModel(title: result.title, message: message, buttonText: result.buttonText) { [weak self] in
-            guard let self = self else { return }
-
-            self.currentQuestionIndex = 0
+        let action = UIAlertAction(title: result.buttonText, style: .default) { [weak self] _ in
+                    guard let self = self else { return }
+                    
+            self.presenter.resetQuestionIndex()
             self.correctAnswers = 0
-
             self.questionFactory?.requestNextQuestion()
         }
-
-        alertPresenter.show(in: self, model: model)
     }
     
     
     private func showNextQuestionOrResults() {
-        if currentQuestionIndex == questionsAmount - 1 {
+        if presenter.isLastQuestion() {
             let text = "Вы ответили на \(correctAnswers) из 10, попробуйте еще раз!"
 
             let viewModel = QuizResultsViewModel(
@@ -65,7 +62,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
                 buttonText: "Сыграть ещё раз")
             show(quiz: viewModel)
         } else {
-            currentQuestionIndex += 1
+            presenter.switchToNextQuestion()
             questionFactory?.requestNextQuestion()
         }
     }
@@ -133,7 +130,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
                                    style: .default) { [weak self] _ in
             guard let self = self else { return }
 
-            self.currentQuestionIndex = 0
+            self.presenter.resetQuestionIndex()
             self.correctAnswers = 0
 
             self.questionFactory?.requestNextQuestion()
