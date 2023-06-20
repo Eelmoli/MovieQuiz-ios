@@ -10,23 +10,21 @@ import UIKit
 
 final class MovieQuizPresenter: QuestionFactoryDelegate {
     
-    private let questionsAmount: Int = 10
-    private var currentQuestionIndex: Int = 0
-    private var currentQuestion: QuizQuestion?
-    private weak var viewController: MovieQuizViewController?
-    private var correctAnswers: Int = 0
-    private var questionFactory: QuestionFactoryProtocol?
+    let questionsAmount: Int = 10
+    var currentQuestionIndex: Int = 0
+    var currentQuestion: QuizQuestion?
+    var viewController: MovieQuizViewControllerProtocol?
+    var correctAnswers: Int = 0
+    var questionFactory: QuestionFactoryProtocol?
     private let statisticService: StatisticService!
     
-    init(viewController: MovieQuizViewController) {
-            self.viewController = viewController
-
-            statisticService = StatisticServiceImplementation()
-
-            questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
-            questionFactory?.loadData()
-            viewController.showLoadingIndicator()
-        }
+    init(viewController: MovieQuizViewControllerProtocol) {
+        self.viewController = viewController
+        statisticService = StatisticServiceImplementation()
+        questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
+        questionFactory?.loadData()
+        viewController.showLoadingIndicator()
+    }
     
     func makeResultsMessage() -> String {
             statisticService.store(correct: correctAnswers, total: questionsAmount)
@@ -81,6 +79,11 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
             didAnswer(isYes: false)
         }
 
+    func didAnswer(isCorrectAnswer: Bool) {
+            if isCorrectAnswer {
+                correctAnswers += 1
+            }
+        }
     private func didAnswer(isYes: Bool) {
             guard let currentQuestion = currentQuestion else {
                 return
@@ -90,7 +93,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
 
             proceedWithAnswer(isCorrect: givenAnswer == currentQuestion.correctAnswer)
         }
-    func didRecieveNextQuestion(question: QuizQuestion?) {
+    func didReceiveNextQuestion(question: QuizQuestion?) {
             guard let question = question else {
                 return
             }
@@ -101,6 +104,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
                 self?.viewController?.show(quiz: viewModel)
             }
         }
+    
     func restartGame() {
             currentQuestionIndex = 0
             correctAnswers = 0
@@ -123,7 +127,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
             }
         }
     private func proceedWithAnswer(isCorrect: Bool) {
-        didAnswer(isYes: isCorrect)
+            didAnswer(isCorrectAnswer: isCorrect)
 
             viewController?.highlightImageBorder(isCorrectAnswer: isCorrect)
 
